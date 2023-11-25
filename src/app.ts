@@ -3,7 +3,7 @@ const app: Application = express()
 import cors from 'cors'
 import { UsersRoutes } from './app/modules/users/users.route'
 
-//*** parser
+// *** parser
 
 app.use(express.json())
 app.use(cors())
