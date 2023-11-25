@@ -1,6 +1,4 @@
 
-Sure! Here's an example of a README file for your Node.js Express application with TypeScript, MongoDB, and Mongoose integration:
-
 # Node.js Express TypeScript MongoDB Application
 
 This is a Node.js Express application with TypeScript as the programming language and MongoDB as the database backend. It provides CRUD (Create, Read, Update, Delete) operations for managing users and their orders, with data validation using Joi.
