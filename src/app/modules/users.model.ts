@@ -1,13 +1,25 @@
 import { Schema, model } from 'mongoose'
-import { User } from './users/users.interface'
+import { User, UserModeles, userMethod } from './users/users.interface'
+import bcrypt from 'bcrypt'
+import config from '../config'
 
-const userSchema = new Schema<User>({
-  userId: { type: Number, required: true },
-  username: { type: String, required: true },
+const userSchema = new Schema<User, UserModeles, userMethod>({
+  userId: { type: Number, required: true, unique: true },
+  username: { type: String, required: true, maxlength: 20 },
   password: { type: String, required: true },
   fullName: {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    firstName: {
+      type: String,
+      required: true,
+      maxlength: [20, 'firstName can not be more than 20'],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      maxlength: [20, 'lastName can not be more than 20'],
+      trim: true,
+    },
   },
   age: { type: Number, required: true },
   email: { type: String, required: true },
@@ -27,4 +39,28 @@ const userSchema = new Schema<User>({
   ],
 })
 
-export const UserModel = model<User>('UserM', userSchema)
+userSchema.pre('save', async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const userM = this
+  userM.password = await bcrypt.hash(
+    userM.password,
+    Number(config.bcrypt_salt_round),
+  )
+  next()
+})
+
+userSchema.post('save', function (doc, next) {
+  doc.password = ' ';
+  next()
+})
+
+userSchema.pre('find', function (next) {
+  next()
+})
+
+userSchema.methods.isUserExists = async function (userId: number) {
+  const existingUser = await UserModel.findOne({ userId })
+  return existingUser
+}
+
+export const UserModel = model<User, UserModeles>('UserM', userSchema)
