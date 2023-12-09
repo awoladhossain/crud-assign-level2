@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
 import { UserServices } from './users.service'
-import { userSchemaZod } from './users.validation'
+import { orderValidationSchema, userSchemaZod } from './users.validation'
+
+
 
 const createUser = async (req: Request, res: Response) => {
   try {
@@ -10,12 +12,19 @@ const createUser = async (req: Request, res: Response) => {
     const zodData = userSchemaZod.parse(user)
 
     // *** service function called to send
-    const result = await UserServices.createUserToDB(zodData)
+    const result = await UserServices.createUserToDB(zodData);
+    const modifiedResultData = JSON.parse(JSON.stringify(result));
+
+    delete modifiedResultData.password
+    delete modifiedResultData.orders
+    
+
+    
     // *** send response
     res.status(200).json({
       success: true,
       message: 'User created successfully!',
-      data: result,
+      data: modifiedResultData,
     })
   } catch (error) {
     res.status(500).json({
@@ -50,12 +59,16 @@ const getAllUser = async (req: Request, res: Response) => {
 }
 const getSingleUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params
-    const result = await UserServices.getSingleUserFromDB(parseInt(userId))
+    const userId = parseInt(req.params.userId)
+    const result = await UserServices.getSingleUserFromDB(userId);
+
+    const modifiedResultData = JSON.parse(JSON.stringify(result))
+   delete modifiedResultData.orders
+
     res.status(200).json({
       success: true,
       message: 'User fetched successfully!',
-      data: result,
+      data: modifiedResultData,
     })
   } catch (error) {
     res.status(500).json({
@@ -70,8 +83,11 @@ const getSingleUser = async (req: Request, res: Response) => {
 }
 const deleteSingleUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params
-    const result = await UserServices.deleteSingleUserFromDB(parseInt(userId))
+    const  userId  = parseInt(req.params.userId)
+    const result = await UserServices.deleteSingleUserFromDB(userId);
+
+   
+
     res.status(200).json({
       success: true,
       message: 'User fetched successfully!',
@@ -90,8 +106,13 @@ const deleteSingleUser = async (req: Request, res: Response) => {
 }
 const updateSingleUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params
-    const result = await UserServices.updateSingleUserFromDB(parseInt(userId))
+    const  userId  = parseInt(req.params.userId)
+  
+
+    const zodParseData = userSchemaZod.parse(req.body);
+    const result = await UserServices.updateSingleUserFromDB(userId, zodParseData);
+
+
     res.status(200).json({
       success: true,
       message: 'User fetched successfully!',
@@ -109,10 +130,37 @@ const updateSingleUser = async (req: Request, res: Response) => {
   }
 }
 
+
+const addOrder = async (req: Request, res: Response) => {
+
+ try {
+
+   const userId = parseInt(req.params.userId)
+
+   const zodParseData = orderValidationSchema.parse(req.body)
+   await UserServices.addOrderIntoDB(userId, [zodParseData]);
+
+   res.status(200).json({
+     success: true,
+     message: 'Order created successfully!',
+     data: null,
+   })
+  
+ } catch (error) {
+   res.status(500).json({
+     status: 'fail',
+     message: 'something went wrong',
+   })
+ }
+  
+}
+
+
 export const UserController = {
   createUser,
   getAllUser,
   getSingleUser,
   deleteSingleUser,
   updateSingleUser,
+  addOrder
 }

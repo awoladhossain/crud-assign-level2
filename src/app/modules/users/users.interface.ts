@@ -17,7 +17,7 @@ export type User = {
     city: string
     country: string
   }
-  orders: {
+  orders?: {
     productName: string
     price: number
     quantity: number
@@ -25,7 +25,9 @@ export type User = {
 }
 
 export type userMethod = {
-  isUserExists(userId: number): Promise<User | null>
+  isUserExists(userId: number): Promise<User | null>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  calcOdersTotal(userId: number): Promise<{ result: any; totalPrice:number}>
 }
 
 export type UserModeles = Model<User, Record<string, never>, userMethod>
